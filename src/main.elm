@@ -8,26 +8,26 @@ import Html.Events exposing (onClick)
 import String exposing (fromChar)
 import Random
 
-type alias GameCell =
+type alias Card =
     { id: Int
-    , piece: Int}
+    , pic: Int}
 
-type alias BoardRow = Array.Array GameCell
+type alias BoardRow = Array.Array Card
 type alias GameBoard = Array.Array BoardRow
 
-createBoard : Int -> Int -> (Int -> GameCell) -> GameBoard
+createBoard : Int -> Int -> (Int -> Card) -> GameBoard
 createBoard x y function =
     Array.initialize x (\m -> (Array.initialize y (\n -> function (m*x+n))))
 
-displayFunc : GameCell -> Html Msg
+displayFunc : Card -> Html Msg
 displayFunc le_cell =
     Html.td [] [Html.text (String.fromInt le_cell.id)]
 
-displayRow : (GameCell -> Html Msg) -> BoardRow -> Html Msg
+displayRow : (Card -> Html Msg) -> BoardRow -> Html Msg
 displayRow function le_row =
     Html.tr [] (Array.toList <| Array.map function le_row)
 
-displayBoard : (GameCell -> Html Msg) -> GameBoard -> Html Msg
+displayBoard : (Card -> Html Msg) -> GameBoard -> Html Msg
 displayBoard function le_board =
     Html.table [] (Array.toList <| Array.map (displayRow function) le_board)
 
@@ -41,7 +41,7 @@ initialModel :  () -> (Model, Cmd Msg)
 initialModel _ =
     ({ board = repeat 16 '_'
     , player = 1
-    , test_board = createBoard 0 0 (\n -> {id=n, piece=0})}
+    , test_board = createBoard 0 0 (\n -> {id=n, pic=0})}
     , Cmd.none
     )
 
