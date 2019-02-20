@@ -1,25 +1,12 @@
-import Random
+module Main exposing (main)
+
 import Array exposing (Array, get, repeat, set)
 import Browser
 import Html exposing (Html, button, div, p, table, td, text, tr, img)
 import Html.Attributes exposing (style, src)
 import Html.Events exposing (onClick)
 import String exposing (fromChar)
-
--- MAIN
-
-
-main =
-  Browser.element
-    { init = init
-    , update = update
-    , subscriptions = subscriptions
-    , view = view
-    }
-
-
-
--- MODEL
+import Random
 
 type alias GameCell =
     { id: Int
@@ -42,79 +29,31 @@ displayRow function le_row =
 
 displayBoard : (GameCell -> Html Msg) -> GameBoard -> Html Msg
 displayBoard function le_board =
-Html.table [] (Array.toList <| Array.map (displayRow function) le_board)
-
-
-type alias Card =
-    { id : Int
-    --, group : Group
-    , flipped : Bool
-    }
-
-type alias Board = List (List Card)
+    Html.table [] (Array.toList <| Array.map (displayRow function) le_board)
 
 type alias Model =
     { board: Array Char
     , player : Int
     , test_board: GameBoard}
-    }
-
-init : () -> (Model, Cmd Msg)
-init _ =
-  ( {dieFace = 1, board = [[{id = 1, flipped = False},{id = 2, flipped = False}],
-                          [{id = 1, flipped = False},{id = 2, flipped = False}]]}
-  , Cmd.none
-  )
-
-cardClass : Card -> String
-cardClass card =
-    "card-" ++ (String.fromInt card.id)
 
 
-{-createCard card =
-    div [ "container" ]
-        -- try changing ("flipped", False) into ("flipped", True)
-        [ div [ classList [ ( "card", True ), ( "flipped", False ) ] ]
-            [ div [ "card-back" ] []
-            , div [ ("front " ++ cardClass card) ] []
-            ]
-        ]-}
-
-
-
--- UPDATE
-
+initialModel :  () -> (Model, Cmd Msg)
+initialModel _ =
+    ({ board = repeat 16 '_'
+    , player = 1
+    , test_board = createBoard 0 0 (\n -> {id=n, piece=0})}
+    , Cmd.none
+    )
 
 type Msg
-  = Roll
-  | NewFace Int
-
+    = Play Int
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-  case msg of
-    Roll ->
-      ( model
-      , Cmd.none
-      )
+    case msg of
+        Play n ->
+            ({ model | board = set n 'X' model.board}, Cmd.none)
 
-    NewFace newFace ->
-      ( model
-      , Cmd.none
-      )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-  Sub.none
-
-
-
--- VIEW
 
 
 view : Model -> Html Msg
@@ -128,7 +67,6 @@ view model =
             else
                 img [src "https://github.com/GBBasel/memeory/blob/master/pics/Background.png"] []
     in
-        div [] List.map (\row -> Html.div [] List.map (\card -> Html.div [] []) row)
         div []
             [ text "Memeory"
             , p [] []
@@ -161,3 +99,17 @@ view model =
             , p [] []
             , displayBoard displayFunc model.test_board
             ]
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+
+main : Program () Model Msg
+main =
+    Browser.element
+        { init = initialModel
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
