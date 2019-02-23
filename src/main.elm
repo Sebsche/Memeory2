@@ -24,9 +24,14 @@ createBoard x y function =
 
 displayFunc : Card -> Html Msg
 displayFunc le_cell =
-      --img [src "card/" ++ String.fromInt le_cell.pic ++ ".png"]
-    Html.td [] [Html.text (String.fromInt le_cell.pic)]
+      img [src ("card/" ++ String.fromInt le_cell.pic ++ ".png")] []
+    --Kombination aus:
+    --Html.td [] [Html.text (String.fromInt le_cell.pic)]
     --img [src "card/4.png"] []
+
+displayBack : Card -> Html Msg
+displayBack le_cell =
+      img [src "card/back.png"] []
 
 displayRow : (Card -> Html Msg) -> BoardRow -> Html Msg
 displayRow function le_row =
@@ -73,7 +78,6 @@ view : Model -> Html Msg
 view model =
     div []
         [ text "Memeory"
-        , p [] []
         , displayBoard displayFunc model.test_board
         ]
 
