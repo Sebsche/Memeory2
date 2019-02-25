@@ -9,30 +9,58 @@ import String exposing (fromChar)
 import Random
 import Random.List
 
+type CardStatus
+    = Hidden
+    | Visible
+    | Found
+
 type alias Card =
     { id: Int
     , pic: Int
-    , flipped: Bool
-    }
+    , status: CardStatus}
 
 type alias BoardRow = Array.Array Card
 type alias GameBoard = Array.Array BoardRow
 
---createList : List
+type alias Model =
+    { board: GameBoard
+     , selectedFirstPic: Int
+     , selectedCount: Int
+    }
+
+type Msg
+    = SetCards (List Int)
+    | Flip Card
+
+
+-- *****************************************
+-- Initailize Model
+-- *****************************************
+
+initialModel : () -> (Model, Cmd Msg)
+initialModel _ =
+    ({ selectedFirstPic = -1
+    , selectedCount = 0
+    , board = createBoard 4 4 (\n -> {id=n, pic=0, status=Hidden})}
+    , Random.generate SetCards (Random.List.shuffle (List.append (List.range 0 7) (List.range 0 7)))
+    )
+
 
 createBoard : Int -> Int -> (Int -> Card) -> GameBoard
 createBoard x y function =
     Array.initialize x (\m -> (Array.initialize y (\n -> function (m*x+n))))
 
+-- *****************************************
+-- View
+-- *****************************************
+
 displayFunc : Card -> Html Msg
 displayFunc le_cell =
-      if le_cell.flipped == True then
-        img [src ("card/" ++ String.fromInt le_cell.pic ++ ".png")] []
-      else
-        img [src "card/back.png", onClick <| Flip le_cell] []
-    --Kombination aus:
-    --Html.td [] [Html.text (String.fromInt le_cell.pic)]
-    --img [src "card/4.png"] []
+    if le_cell.status == Visible || le_cell.status == Found then
+        img [src ("https://raw.githubusercontent.com/GBBasel/Memeory2/master/src/card/" ++ String.fromInt le_cell.pic ++ ".png"), onClick <| Flip le_cell] []
+    else
+        img [src ("https://raw.githubusercontent.com/GBBasel/Memeory2/master/src/card/back.png"), onClick <| Flip le_cell] []
+
 
 displayRow : (Card -> Html Msg) -> BoardRow -> Html Msg
 displayRow function le_row =
@@ -42,62 +70,80 @@ displayBoard : (Card -> Html Msg) -> GameBoard -> Html Msg
 displayBoard function le_board =
     Html.table [] (Array.toList <| Array.map (displayRow function) le_board)
 
-type alias Model =
-    { board: Array Char
-    , player : Int
-    , test_board: GameBoard}
+view : Model -> Html Msg
+view model =
+    div []
+        [ text "Memeory"
+        , p [] []
+        , displayBoard displayFunc model.board
+        ]
 
-initialModel : () -> (Model, Cmd Msg)
-initialModel _ =
-    ({ board = repeat 16 '_'
-    , player = 1
-    , test_board = createBoard 4 4 (\n -> {id=n, pic=0, flipped=False})}
-    , Random.generate SetCards (Random.List.shuffle (List.append (List.range 0 7) (List.range 0 7)))
-    )
+-- *****************************************
+-- Update
+-- *****************************************
 
-type Msg
-    = Play Int
-    | SetCards (List Int)
-    | Flip Card
+setCard : Card -> (Card -> Card) -> GameBoard -> GameBoard
+setCard card func board =
+    Array.map (\row -> Array.map (\cell -> if cell.id == card.id then func cell else cell) row) board
+
+setCardFound : Int -> (Card -> Card) -> GameBoard -> GameBoard
+setCardFound pic func board =
+    Array.map (\row -> Array.map (\cell -> if cell.pic == pic then func cell else cell) row) board
+
+setSelectedCard : Card -> Model -> Model
+setSelectedCard card model = { model | selectedFirstPic = (if model.selectedCount == 0 then card.pic else model.selectedFirstPic)
+            , selectedCount = model.selectedCount + 1 }
+
+resetSelectedCard : Card -> Model -> Model
+resetSelectedCard card model = { model | selectedFirstPic = (if model.selectedCount == 1 then -1 else model.selectedFirstPic)
+            , selectedCount = model.selectedCount - 1 }
+
+makeModel : Model -> GameBoard -> Model
+makeModel model board =
+    {model | board = board}
 
 setModel : List Int -> flags -> (Model, Cmd Msg)
 setModel list _ =
-    ({ board = repeat 16 '_'
-    , player = 1
-    , test_board = createBoard 4 4 (\n -> {id=n, flipped=False, pic= Array.get n (Array.fromList list) |> Maybe.withDefault 0})}
+    ({selectedFirstPic = -1
+    , selectedCount = 0
+    , board = createBoard 4 4 (\n -> {id=n, status=Hidden, pic=Array.get n (Array.fromList list) |> Maybe.withDefault 0})}
     , Cmd.none
     )
-
-setFlipped : Model -> Card -> (Model, Cmd Msg)
-setFlipped model card =
-      (model, Cmd.none)
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        Play n ->
-            ({ model | board = set n 'X' model.board}, Cmd.none)
-
         Flip card ->
-            ({ model | test_board = set 1 True test_board.card}, Cmd.none)
-            --setFlipped model card
+
+            case card.status of
+                Hidden ->
+                   if model.selectedCount == 1 && card.pic == model.selectedFirstPic then
+                       ( resetSelectedCard card <| makeModel model <| setCardFound model.selectedFirstPic (\cell -> {cell | status=Found}) model.board, Cmd.none)
+                   else if model.selectedCount == 1 then
+                       ( setSelectedCard card <| makeModel model <| setCard card (\cell -> {cell | status=Visible}) model.board, Cmd.none)
+                   else if model.selectedCount > 1 then
+                       ( model, Cmd.none )
+                   else
+                       ( setSelectedCard card <| makeModel model <| setCard card (\cell -> {cell | status=Visible}) model.board, Cmd.none)
+                Visible ->
+                   ( resetSelectedCard card <| makeModel model <| setCard card (\cell -> {cell | status=Hidden}) model.board, Cmd.none)
+                Found ->
+                   ( model, Cmd.none )
 
         SetCards list ->
             setModel list 0
 
-view : Model -> Html Msg
-view model =
-    div []
-        [ p []
-            [text "Memeory"
-            ]
-        , displayBoard displayFunc model.test_board
-        ]
 
-
+-- *****************************************
+-- Subscription (only needed for Random.List)
+-- *****************************************
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.none
+
+-- *****************************************
+-- Main
+-- *****************************************
 
 main : Program () Model Msg
 main =
