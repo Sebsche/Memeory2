@@ -1,9 +1,18 @@
+<style>
 p {
-  font-size: 200%;
+  font-size: 400%;
   color: blue;
+  text-align: center;
 }
 
 div{
   text-align: center;
+  color: red;
+}
+button{
   background-color: orange;
 }
+table{
+  align: center;
+}
+</style>
