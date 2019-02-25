@@ -2,8 +2,18 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Memeory</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Main</title>
+  <style>
+  p {
+    font-size: 200%;
+    color: blue;
+  }
+
+  div{
+    text-align: center;
+    background-color: orange;
+  }
+  </style>
 </head>
 
 <body>
@@ -5370,6 +5380,7 @@ var author$project$Main$initialModel = function (_n0) {
 				function (n) {
 					return {id: n, pic: 0, status: author$project$Main$Hidden};
 				}),
+			count: 0,
 			selectedCount: 0,
 			selectedFirstPic: -1
 		},
@@ -5564,6 +5575,7 @@ var author$project$Main$setModel = F2(
 							status: author$project$Main$Hidden
 						};
 					}),
+				count: 0,
 				selectedCount: 0,
 				selectedFirstPic: -1
 			},
@@ -5580,86 +5592,101 @@ var author$project$Main$setSelectedCard = F2(
 	});
 var author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Flip') {
-			var card = msg.a;
-			var _n1 = card.status;
-			switch (_n1.$) {
-				case 'Hidden':
-					return ((model.selectedCount === 1) && _Utils_eq(card.pic, model.selectedFirstPic)) ? _Utils_Tuple2(
-						A2(
-							author$project$Main$resetSelectedCard,
-							card,
+		switch (msg.$) {
+			case 'Flip':
+				var card = msg.a;
+				var _n1 = card.status;
+				switch (_n1.$) {
+					case 'Hidden':
+						return ((model.selectedCount === 1) && _Utils_eq(card.pic, model.selectedFirstPic)) ? _Utils_Tuple2(
 							A2(
-								author$project$Main$makeModel,
-								model,
-								A3(
-									author$project$Main$setCardFound,
-									model.selectedFirstPic,
-									function (cell) {
-										return _Utils_update(
-											cell,
-											{status: author$project$Main$Found});
-									},
-									model.board))),
-						elm$core$Platform$Cmd$none) : ((model.selectedCount === 1) ? _Utils_Tuple2(
-						A2(
-							author$project$Main$setSelectedCard,
-							card,
+								author$project$Main$resetSelectedCard,
+								card,
+								A2(
+									author$project$Main$makeModel,
+									model,
+									A3(
+										author$project$Main$setCardFound,
+										model.selectedFirstPic,
+										function (cell) {
+											return _Utils_update(
+												cell,
+												{status: author$project$Main$Found});
+										},
+										model.board))),
+							elm$core$Platform$Cmd$none) : ((model.selectedCount === 1) ? _Utils_Tuple2(
 							A2(
-								author$project$Main$makeModel,
-								model,
-								A3(
-									author$project$Main$setCard,
-									card,
-									function (cell) {
-										return _Utils_update(
-											cell,
-											{status: author$project$Main$Visible});
-									},
-									model.board))),
-						elm$core$Platform$Cmd$none) : ((model.selectedCount > 1) ? _Utils_Tuple2(model, elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-						A2(
-							author$project$Main$setSelectedCard,
-							card,
+								author$project$Main$setSelectedCard,
+								card,
+								A2(
+									author$project$Main$makeModel,
+									model,
+									A3(
+										author$project$Main$setCard,
+										card,
+										function (cell) {
+											return _Utils_update(
+												cell,
+												{status: author$project$Main$Visible});
+										},
+										model.board))),
+							elm$core$Platform$Cmd$none) : ((model.selectedCount > 1) ? _Utils_Tuple2(model, elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 							A2(
-								author$project$Main$makeModel,
-								model,
-								A3(
-									author$project$Main$setCard,
-									card,
-									function (cell) {
-										return _Utils_update(
-											cell,
-											{status: author$project$Main$Visible});
-									},
-									model.board))),
-						elm$core$Platform$Cmd$none)));
-				case 'Visible':
-					return _Utils_Tuple2(
-						A2(
-							author$project$Main$resetSelectedCard,
-							card,
+								author$project$Main$setSelectedCard,
+								card,
+								A2(
+									author$project$Main$makeModel,
+									model,
+									A3(
+										author$project$Main$setCard,
+										card,
+										function (cell) {
+											return _Utils_update(
+												cell,
+												{status: author$project$Main$Visible});
+										},
+										model.board))),
+							elm$core$Platform$Cmd$none)));
+					case 'Visible':
+						return _Utils_Tuple2(
 							A2(
-								author$project$Main$makeModel,
-								model,
-								A3(
-									author$project$Main$setCard,
-									card,
-									function (cell) {
-										return _Utils_update(
-											cell,
-											{status: author$project$Main$Hidden});
-									},
-									model.board))),
-						elm$core$Platform$Cmd$none);
-				default:
-					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-			}
-		} else {
-			var list = msg.a;
-			return A2(author$project$Main$setModel, list, 0);
+								author$project$Main$resetSelectedCard,
+								card,
+								A2(
+									author$project$Main$makeModel,
+									model,
+									A3(
+										author$project$Main$setCard,
+										card,
+										function (cell) {
+											return _Utils_update(
+												cell,
+												{status: author$project$Main$Hidden});
+										},
+										model.board))),
+							elm$core$Platform$Cmd$none);
+					default:
+						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				}
+			case 'SetCards':
+				var list = msg.a;
+				return A2(author$project$Main$setModel, list, 0);
+			case 'Increment':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{count: model.count + 1}),
+					elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{count: model.count - 1}),
+					elm$core$Platform$Cmd$none);
 		}
 	});
+var author$project$Main$Decrement = {$: 'Decrement'};
+var author$project$Main$Increment = {$: 'Increment'};
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
@@ -5751,6 +5778,7 @@ var author$project$Main$displayFunc = function (le_cell) {
 			]),
 		_List_Nil);
 };
+var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$p = _VirtualDom_node('p');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
@@ -5763,7 +5791,35 @@ var author$project$Main$view = function (model) {
 			[
 				elm$html$Html$text('Memeory'),
 				A2(elm$html$Html$p, _List_Nil, _List_Nil),
-				A2(author$project$Main$displayBoard, author$project$Main$displayFunc, model.board)
+				A2(author$project$Main$displayBoard, author$project$Main$displayFunc, model.board),
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$Main$Increment)
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Player 1 has a pair')
+					])),
+				A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text(
+						elm$core$String$fromInt(model.count))
+					])),
+				A2(
+				elm$html$Html$button,
+				_List_fromArray(
+					[
+						elm$html$Html$Events$onClick(author$project$Main$Decrement)
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text('Player 2 has a pair')
+					]))
 			]));
 };
 var elm$browser$Browser$External = function (a) {

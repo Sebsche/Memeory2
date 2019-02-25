@@ -1,8 +1,9 @@
 p {
   font-size: 200%;
-  color: blue
+  color: blue;
 }
 
 div{
   text-align: center;
+  background-color: orange;
 }

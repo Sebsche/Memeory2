@@ -26,11 +26,14 @@ type alias Model =
     { board: GameBoard
      , selectedFirstPic: Int
      , selectedCount: Int
+     , count: Int
     }
 
 type Msg
     = SetCards (List Int)
     | Flip Card
+    | Increment
+    | Decrement
 
 
 -- *****************************************
@@ -41,6 +44,7 @@ initialModel : () -> (Model, Cmd Msg)
 initialModel _ =
     ({ selectedFirstPic = -1
     , selectedCount = 0
+    , count = 0
     , board = createBoard 4 4 (\n -> {id=n, pic=0, status=Hidden})}
     , Random.generate SetCards (Random.List.shuffle (List.append (List.range 0 7) (List.range 0 7)))
     )
@@ -76,7 +80,11 @@ view model =
         [ text "Memeory"
         , p [] []
         , displayBoard displayFunc model.board
+        , button [ onClick Increment ] [ text "Player 1 has a pair" ]
+        , div [] [ text <| String.fromInt model.count ]
+        , button [ onClick Decrement ] [ text "Player 2 has a pair" ]
         ]
+
 
 -- *****************************************
 -- Update
@@ -106,6 +114,7 @@ setModel : List Int -> flags -> (Model, Cmd Msg)
 setModel list _ =
     ({selectedFirstPic = -1
     , selectedCount = 0
+    , count = 0
     , board = createBoard 4 4 (\n -> {id=n, status=Hidden, pic=Array.get n (Array.fromList list) |> Maybe.withDefault 0})}
     , Cmd.none
     )
@@ -132,6 +141,12 @@ update msg model =
 
         SetCards list ->
             setModel list 0
+
+        Increment ->
+            ({ model | count = model.count + 1 }, Cmd.none)
+
+        Decrement ->
+            ({ model | count = model.count - 1 }, Cmd.none)
 
 
 -- *****************************************
