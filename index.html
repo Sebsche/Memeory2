@@ -2,7 +2,8 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Main</title>
+  <title>Memeory</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -4403,6 +4404,7 @@ function _Browser_load(url)
 		}
 	}));
 }
+var author$project$Main$Hidden = {$: 'Hidden'};
 var author$project$Main$SetCards = function (a) {
 	return {$: 'SetCards', a: a};
 };
@@ -4672,15 +4674,9 @@ var author$project$Main$createBoard = F3(
 					});
 			});
 	});
-var elm$core$Array$repeat = F2(
-	function (n, e) {
-		return A2(
-			elm$core$Array$initialize,
-			n,
-			function (_n0) {
-				return e;
-			});
-	});
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var elm$core$List$foldrHelper = F4(
 	function (fn, acc, ctr, ls) {
 		if (!ls.b) {
@@ -5253,9 +5249,6 @@ var elm$core$List$take = F2(
 	function (n, list) {
 		return A3(elm$core$List$takeFast, 0, n, list);
 	});
-var elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var elm$core$Bitwise$and = _Bitwise_and;
 var elm$core$Bitwise$xor = _Bitwise_xor;
 var elm$random$Random$peel = function (_n0) {
@@ -5370,18 +5363,15 @@ var elm_community$random_extra$Random$List$shuffle = function (list) {
 var author$project$Main$initialModel = function (_n0) {
 	return _Utils_Tuple2(
 		{
-			board: A2(
-				elm$core$Array$repeat,
-				16,
-				_Utils_chr('_')),
-			player: 1,
-			test_board: A3(
+			board: A3(
 				author$project$Main$createBoard,
 				4,
 				4,
 				function (n) {
-					return {id: n, pic: 0};
-				})
+					return {id: n, pic: 0, status: author$project$Main$Hidden};
+				}),
+			selectedCount: 0,
+			selectedFirstPic: -1
 		},
 		A2(
 			elm$random$Random$generate,
@@ -5397,6 +5387,76 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Main$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
+var author$project$Main$Found = {$: 'Found'};
+var author$project$Main$Visible = {$: 'Visible'};
+var author$project$Main$makeModel = F2(
+	function (model, board) {
+		return _Utils_update(
+			model,
+			{board: board});
+	});
+var author$project$Main$resetSelectedCard = F2(
+	function (card, model) {
+		return _Utils_update(
+			model,
+			{
+				selectedCount: model.selectedCount - 1,
+				selectedFirstPic: (model.selectedCount === 1) ? (-1) : model.selectedFirstPic
+			});
+	});
+var elm$core$Elm$JsArray$map = _JsArray_map;
+var elm$core$Array$map = F2(
+	function (func, _n0) {
+		var len = _n0.a;
+		var startShift = _n0.b;
+		var tree = _n0.c;
+		var tail = _n0.d;
+		var helper = function (node) {
+			if (node.$ === 'SubTree') {
+				var subTree = node.a;
+				return elm$core$Array$SubTree(
+					A2(elm$core$Elm$JsArray$map, helper, subTree));
+			} else {
+				var values = node.a;
+				return elm$core$Array$Leaf(
+					A2(elm$core$Elm$JsArray$map, func, values));
+			}
+		};
+		return A4(
+			elm$core$Array$Array_elm_builtin,
+			len,
+			startShift,
+			A2(elm$core$Elm$JsArray$map, helper, tree),
+			A2(elm$core$Elm$JsArray$map, func, tail));
+	});
+var author$project$Main$setCard = F3(
+	function (card, func, board) {
+		return A2(
+			elm$core$Array$map,
+			function (row) {
+				return A2(
+					elm$core$Array$map,
+					function (cell) {
+						return _Utils_eq(cell.id, card.id) ? func(cell) : cell;
+					},
+					row);
+			},
+			board);
+	});
+var author$project$Main$setCardFound = F3(
+	function (pic, func, board) {
+		return A2(
+			elm$core$Array$map,
+			function (row) {
+				return A2(
+					elm$core$Array$map,
+					function (cell) {
+						return _Utils_eq(cell.pic, pic) ? func(cell) : cell;
+					},
+					row);
+			},
+			board);
+	});
 var elm$core$Array$fromListHelp = F3(
 	function (list, nodeList, nodeListSize) {
 		fromListHelp:
@@ -5487,12 +5547,7 @@ var author$project$Main$setModel = F2(
 	function (list, _n0) {
 		return _Utils_Tuple2(
 			{
-				board: A2(
-					elm$core$Array$repeat,
-					16,
-					_Utils_chr('_')),
-				player: 1,
-				test_board: A3(
+				board: A3(
 					author$project$Main$createBoard,
 					4,
 					4,
@@ -5505,99 +5560,105 @@ var author$project$Main$setModel = F2(
 								A2(
 									elm$core$Array$get,
 									n,
-									elm$core$Array$fromList(list)))
+									elm$core$Array$fromList(list))),
+							status: author$project$Main$Hidden
 						};
-					})
+					}),
+				selectedCount: 0,
+				selectedFirstPic: -1
 			},
 			elm$core$Platform$Cmd$none);
 	});
-var elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
-var elm$core$Array$setHelp = F4(
-	function (shift, index, value, tree) {
-		var pos = elm$core$Array$bitMask & (index >>> shift);
-		var _n0 = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
-		if (_n0.$ === 'SubTree') {
-			var subTree = _n0.a;
-			var newSub = A4(elm$core$Array$setHelp, shift - elm$core$Array$shiftStep, index, value, subTree);
-			return A3(
-				elm$core$Elm$JsArray$unsafeSet,
-				pos,
-				elm$core$Array$SubTree(newSub),
-				tree);
-		} else {
-			var values = _n0.a;
-			var newLeaf = A3(elm$core$Elm$JsArray$unsafeSet, elm$core$Array$bitMask & index, value, values);
-			return A3(
-				elm$core$Elm$JsArray$unsafeSet,
-				pos,
-				elm$core$Array$Leaf(newLeaf),
-				tree);
-		}
-	});
-var elm$core$Array$set = F3(
-	function (index, value, array) {
-		var len = array.a;
-		var startShift = array.b;
-		var tree = array.c;
-		var tail = array.d;
-		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? array : ((_Utils_cmp(
-			index,
-			elm$core$Array$tailIndex(len)) > -1) ? A4(
-			elm$core$Array$Array_elm_builtin,
-			len,
-			startShift,
-			tree,
-			A3(elm$core$Elm$JsArray$unsafeSet, elm$core$Array$bitMask & index, value, tail)) : A4(
-			elm$core$Array$Array_elm_builtin,
-			len,
-			startShift,
-			A4(elm$core$Array$setHelp, startShift, index, value, tree),
-			tail));
+var author$project$Main$setSelectedCard = F2(
+	function (card, model) {
+		return _Utils_update(
+			model,
+			{
+				selectedCount: model.selectedCount + 1,
+				selectedFirstPic: (!model.selectedCount) ? card.pic : model.selectedFirstPic
+			});
 	});
 var author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Play') {
-			var n = msg.a;
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						board: A3(
-							elm$core$Array$set,
-							n,
-							_Utils_chr('X'),
-							model.board)
-					}),
-				elm$core$Platform$Cmd$none);
+		if (msg.$ === 'Flip') {
+			var card = msg.a;
+			var _n1 = card.status;
+			switch (_n1.$) {
+				case 'Hidden':
+					return ((model.selectedCount === 1) && _Utils_eq(card.pic, model.selectedFirstPic)) ? _Utils_Tuple2(
+						A2(
+							author$project$Main$resetSelectedCard,
+							card,
+							A2(
+								author$project$Main$makeModel,
+								model,
+								A3(
+									author$project$Main$setCardFound,
+									model.selectedFirstPic,
+									function (cell) {
+										return _Utils_update(
+											cell,
+											{status: author$project$Main$Found});
+									},
+									model.board))),
+						elm$core$Platform$Cmd$none) : ((model.selectedCount === 1) ? _Utils_Tuple2(
+						A2(
+							author$project$Main$setSelectedCard,
+							card,
+							A2(
+								author$project$Main$makeModel,
+								model,
+								A3(
+									author$project$Main$setCard,
+									card,
+									function (cell) {
+										return _Utils_update(
+											cell,
+											{status: author$project$Main$Visible});
+									},
+									model.board))),
+						elm$core$Platform$Cmd$none) : ((model.selectedCount > 1) ? _Utils_Tuple2(model, elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+						A2(
+							author$project$Main$setSelectedCard,
+							card,
+							A2(
+								author$project$Main$makeModel,
+								model,
+								A3(
+									author$project$Main$setCard,
+									card,
+									function (cell) {
+										return _Utils_update(
+											cell,
+											{status: author$project$Main$Visible});
+									},
+									model.board))),
+						elm$core$Platform$Cmd$none)));
+				case 'Visible':
+					return _Utils_Tuple2(
+						A2(
+							author$project$Main$resetSelectedCard,
+							card,
+							A2(
+								author$project$Main$makeModel,
+								model,
+								A3(
+									author$project$Main$setCard,
+									card,
+									function (cell) {
+										return _Utils_update(
+											cell,
+											{status: author$project$Main$Hidden});
+									},
+									model.board))),
+						elm$core$Platform$Cmd$none);
+				default:
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			}
 		} else {
 			var list = msg.a;
 			return A2(author$project$Main$setModel, list, 0);
 		}
-	});
-var elm$core$Elm$JsArray$map = _JsArray_map;
-var elm$core$Array$map = F2(
-	function (func, _n0) {
-		var len = _n0.a;
-		var startShift = _n0.b;
-		var tree = _n0.c;
-		var tail = _n0.d;
-		var helper = function (node) {
-			if (node.$ === 'SubTree') {
-				var subTree = node.a;
-				return elm$core$Array$SubTree(
-					A2(elm$core$Elm$JsArray$map, helper, subTree));
-			} else {
-				var values = node.a;
-				return elm$core$Array$Leaf(
-					A2(elm$core$Elm$JsArray$map, func, values));
-			}
-		};
-		return A4(
-			elm$core$Array$Array_elm_builtin,
-			len,
-			startShift,
-			A2(elm$core$Elm$JsArray$map, helper, tree),
-			A2(elm$core$Elm$JsArray$map, func, tail));
 	});
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
@@ -5635,6 +5696,9 @@ var author$project$Main$displayBoard = F2(
 					author$project$Main$displayRow(_function),
 					le_board)));
 	});
+var author$project$Main$Flip = function (a) {
+	return {$: 'Flip', a: a};
+};
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
@@ -5650,13 +5714,40 @@ var elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
-var author$project$Main$displayFunc = function (le_cell) {
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
 	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var author$project$Main$displayFunc = function (le_cell) {
+	return (_Utils_eq(le_cell.status, author$project$Main$Visible) || _Utils_eq(le_cell.status, author$project$Main$Found)) ? A2(
 		elm$html$Html$img,
 		_List_fromArray(
 			[
 				elm$html$Html$Attributes$src(
-				'card/' + (elm$core$String$fromInt(le_cell.pic) + '.png'))
+				'card/' + (elm$core$String$fromInt(le_cell.pic) + '.png')),
+				elm$html$Html$Events$onClick(
+				author$project$Main$Flip(le_cell))
+			]),
+		_List_Nil) : A2(
+		elm$html$Html$img,
+		_List_fromArray(
+			[
+				elm$html$Html$Attributes$src('card/back.png'),
+				elm$html$Html$Events$onClick(
+				author$project$Main$Flip(le_cell))
 			]),
 		_List_Nil);
 };
@@ -5670,14 +5761,9 @@ var author$project$Main$view = function (model) {
 		_List_Nil,
 		_List_fromArray(
 			[
-				A2(
-				elm$html$Html$p,
-				_List_Nil,
-				_List_fromArray(
-					[
-						elm$html$Html$text('Memeory')
-					])),
-				A2(author$project$Main$displayBoard, author$project$Main$displayFunc, model.test_board)
+				elm$html$Html$text('Memeory'),
+				A2(elm$html$Html$p, _List_Nil, _List_Nil),
+				A2(author$project$Main$displayBoard, author$project$Main$displayFunc, model.board)
 			]));
 };
 var elm$browser$Browser$External = function (a) {

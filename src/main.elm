@@ -57,9 +57,9 @@ createBoard x y function =
 displayFunc : Card -> Html Msg
 displayFunc le_cell =
     if le_cell.status == Visible || le_cell.status == Found then
-        img [src ("https://raw.githubusercontent.com/GBBasel/Memeory2/master/src/card/" ++ String.fromInt le_cell.pic ++ ".png"), onClick <| Flip le_cell] []
+        img [src ("card/" ++ String.fromInt le_cell.pic ++ ".png"), onClick <| Flip le_cell] []
     else
-        img [src ("https://raw.githubusercontent.com/GBBasel/Memeory2/master/src/card/back.png"), onClick <| Flip le_cell] []
+        img [src ("card/back.png"), onClick <| Flip le_cell] []
 
 
 displayRow : (Card -> Html Msg) -> BoardRow -> Html Msg
