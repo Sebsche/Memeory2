@@ -16,7 +16,7 @@ Während der Arbeit sind wir auf folgende, grosse Aufgaben gestossen:
 
 
 ## Randomized Gitter
-Zunächst wird das Gitter mit den Funktionen initialModel und createBoard erstellt. In initialModel werden mit einem Random-Befehl die Listen mit der Karteninformation durchgemischt und in das Gitter gesetzt.
+Zunächst wird das Gitter mit den Funktionen initialModel (wie viele Karten?) und createBoard erstellt. Das Gameboard besteht aus Rows, diese aus Cards. Jede Karte besitzt drei Typen, die id, die Bildnummer und einen Status (Hidden, Visible, Found). Die id ist ein Integer zwischen 0 und 15. Die Bildnummer (pic) wird bei initialModel erzeugt. Es werden zwei Listen von 0 bis 7 erzeugt, zusammengehängt, und mit `shuffle` durcheinandergemischt. So entsteht ein Gitter, in welchem man die Zahlen aus den beiden Listen findet.
 
 ## Bilder einfügen
 Die Bilder werden mit einer einzigen Zeile hinzugefügt: `img [ src ("src/card/" ++ String.fromInt le_cell.pic ++ ".png")] []` Hier werden die zufällig erzeugten Zahlen in die Mitte der Bildadresse eingefügt. Diese Methode ist zwar einfach, benötigte aber einiges an Zeit für die Recherche.
