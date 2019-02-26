@@ -19,7 +19,6 @@ Während der Arbeit sind wir auf folgende, grosse Aufgaben gestossen:
 Zunächst wird das Gitter mit den Funktionen initialModel und createBoard erstellt. In initialModel werden mit einem Random-Befehl die Listen mit der Karteninformation durchgemischt und in das Gitter gesetzt.
 
 ## Bilder einfügen
-Die Bilder werden mit einer einzigen Zeile hinzugefügt: `img [ src ("src/card/" ++ String.fromInt le_cell.pic ++ ".png")] []` Hier werden die zufällig erzeugten Zahlen in die Mitte der Bildadresse eingefügt. Diese Methode ist zwar einfach, benötigte aber einiges an Zeit für die Recherche.
 
 ## on-Click Events (Karten aufdecken)
 Die Bilder werden beim Anklicken von verdeckten Karten angezeigt. Dabei wird der Status von Hidden auf Visible geändert. Nachdem zwei Karten ausgewählt wurden, können keine weiteren Karten aufgedeckt werden, es sei denn, es ist ein Kartenpaar. Unstimmige Kartenpaare können wieder angeklickt werden um wieder zugedeckt zu werden. Übereinstimmende Kartenpaare bleiben aufgedeckt.
