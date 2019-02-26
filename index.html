@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Main</title>
+  <title>Memeory</title>
   <style>
   p {
     font-size: 400%;
@@ -12,7 +12,6 @@
 
   div{
     text-align: center;
-    align: center;
     color: red;
   }
   button{
@@ -22,6 +21,7 @@
     align: center;
   }
   </style>
+
 </head>
 
 <body>
@@ -5388,7 +5388,9 @@ var author$project$Main$initialModel = function (_n0) {
 				function (n) {
 					return {id: n, pic: 0, status: author$project$Main$Hidden};
 				}),
-			count: 0,
+			player: 1,
+			player1Score: 0,
+			player2Score: 0,
 			selectedCount: 0,
 			selectedFirstPic: -1
 		},
@@ -5406,23 +5408,7 @@ var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$Main$subscriptions = function (model) {
 	return elm$core$Platform$Sub$none;
 };
-var author$project$Main$Found = {$: 'Found'};
 var author$project$Main$Visible = {$: 'Visible'};
-var author$project$Main$makeModel = F2(
-	function (model, board) {
-		return _Utils_update(
-			model,
-			{board: board});
-	});
-var author$project$Main$resetSelectedCard = F2(
-	function (card, model) {
-		return _Utils_update(
-			model,
-			{
-				selectedCount: model.selectedCount - 1,
-				selectedFirstPic: (model.selectedCount === 1) ? (-1) : model.selectedFirstPic
-			});
-	});
 var elm$core$Elm$JsArray$map = _JsArray_map;
 var elm$core$Array$map = F2(
 	function (func, _n0) {
@@ -5448,6 +5434,43 @@ var elm$core$Array$map = F2(
 			A2(elm$core$Elm$JsArray$map, helper, tree),
 			A2(elm$core$Elm$JsArray$map, func, tail));
 	});
+var author$project$Main$hideCardsGuessed = F2(
+	function (card, board) {
+		return A2(
+			elm$core$Array$map,
+			function (row) {
+				return A2(
+					elm$core$Array$map,
+					function (cell) {
+						return _Utils_eq(cell.status, author$project$Main$Visible) ? _Utils_update(
+							cell,
+							{status: author$project$Main$Hidden}) : (_Utils_eq(cell.id, card.id) ? _Utils_update(
+							cell,
+							{status: author$project$Main$Visible}) : cell);
+					},
+					row);
+			},
+			board);
+	});
+var author$project$Main$makeModel = F2(
+	function (model, board) {
+		return _Utils_update(
+			model,
+			{board: board});
+	});
+var author$project$Main$resetSelectedCard = function (model) {
+	return _Utils_update(
+		model,
+		{selectedCount: 0, selectedFirstPic: -1});
+};
+var author$project$Main$scorePlayer = function (model) {
+	return _Utils_update(
+		model,
+		{
+			player1Score: (model.player === 1) ? (model.player1Score + 1) : model.player1Score,
+			player2Score: (model.player === 2) ? (model.player2Score + 1) : model.player2Score
+		});
+};
 var author$project$Main$setCard = F3(
 	function (card, func, board) {
 		return A2(
@@ -5462,15 +5485,18 @@ var author$project$Main$setCard = F3(
 			},
 			board);
 	});
-var author$project$Main$setCardFound = F3(
-	function (pic, func, board) {
+var author$project$Main$Found = {$: 'Found'};
+var author$project$Main$setCardFound = F2(
+	function (pic, board) {
 		return A2(
 			elm$core$Array$map,
 			function (row) {
 				return A2(
 					elm$core$Array$map,
 					function (cell) {
-						return _Utils_eq(cell.pic, pic) ? func(cell) : cell;
+						return _Utils_eq(cell.pic, pic) ? _Utils_update(
+							cell,
+							{status: author$project$Main$Found}) : cell;
 					},
 					row);
 			},
@@ -5583,7 +5609,9 @@ var author$project$Main$setModel = F2(
 							status: author$project$Main$Hidden
 						};
 					}),
-				count: 0,
+				player: 1,
+				player1Score: 0,
+				player2Score: 0,
 				selectedCount: 0,
 				selectedFirstPic: -1
 			},
@@ -5598,31 +5626,29 @@ var author$project$Main$setSelectedCard = F2(
 				selectedFirstPic: (!model.selectedCount) ? card.pic : model.selectedFirstPic
 			});
 	});
+var author$project$Main$switchPlayer = function (model) {
+	return _Utils_update(
+		model,
+		{
+			player: (model.player === 1) ? 2 : 1
+		});
+};
 var author$project$Main$update = F2(
 	function (msg, model) {
-		switch (msg.$) {
-			case 'Flip':
-				var card = msg.a;
-				var _n1 = card.status;
-				switch (_n1.$) {
-					case 'Hidden':
-						return ((model.selectedCount === 1) && _Utils_eq(card.pic, model.selectedFirstPic)) ? _Utils_Tuple2(
-							A2(
-								author$project$Main$resetSelectedCard,
-								card,
+		if (msg.$ === 'Flip') {
+			var card = msg.a;
+			var _n1 = card.status;
+			switch (_n1.$) {
+				case 'Hidden':
+					return ((model.selectedCount === 1) && _Utils_eq(card.pic, model.selectedFirstPic)) ? _Utils_Tuple2(
+						author$project$Main$resetSelectedCard(
+							author$project$Main$scorePlayer(
 								A2(
 									author$project$Main$makeModel,
 									model,
-									A3(
-										author$project$Main$setCardFound,
-										model.selectedFirstPic,
-										function (cell) {
-											return _Utils_update(
-												cell,
-												{status: author$project$Main$Found});
-										},
-										model.board))),
-							elm$core$Platform$Cmd$none) : ((model.selectedCount === 1) ? _Utils_Tuple2(
+									A2(author$project$Main$setCardFound, model.selectedFirstPic, model.board)))),
+						elm$core$Platform$Cmd$none) : ((model.selectedCount === 1) ? _Utils_Tuple2(
+						author$project$Main$switchPlayer(
 							A2(
 								author$project$Main$setSelectedCard,
 								card,
@@ -5637,64 +5663,43 @@ var author$project$Main$update = F2(
 												cell,
 												{status: author$project$Main$Visible});
 										},
-										model.board))),
-							elm$core$Platform$Cmd$none) : ((model.selectedCount > 1) ? _Utils_Tuple2(model, elm$core$Platform$Cmd$none) : _Utils_Tuple2(
-							A2(
-								author$project$Main$setSelectedCard,
-								card,
+										model.board)))),
+						elm$core$Platform$Cmd$none) : ((model.selectedCount > 1) ? _Utils_Tuple2(
+						A2(
+							author$project$Main$setSelectedCard,
+							card,
+							author$project$Main$resetSelectedCard(
 								A2(
 									author$project$Main$makeModel,
 									model,
-									A3(
-										author$project$Main$setCard,
-										card,
-										function (cell) {
-											return _Utils_update(
-												cell,
-												{status: author$project$Main$Visible});
-										},
-										model.board))),
-							elm$core$Platform$Cmd$none)));
-					case 'Visible':
-						return _Utils_Tuple2(
+									A2(author$project$Main$hideCardsGuessed, card, model.board)))),
+						elm$core$Platform$Cmd$none) : _Utils_Tuple2(
+						A2(
+							author$project$Main$setSelectedCard,
+							card,
 							A2(
-								author$project$Main$resetSelectedCard,
-								card,
-								A2(
-									author$project$Main$makeModel,
-									model,
-									A3(
-										author$project$Main$setCard,
-										card,
-										function (cell) {
-											return _Utils_update(
-												cell,
-												{status: author$project$Main$Hidden});
-										},
-										model.board))),
-							elm$core$Platform$Cmd$none);
-					default:
-						return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
-				}
-			case 'SetCards':
-				var list = msg.a;
-				return A2(author$project$Main$setModel, list, 0);
-			case 'Increment':
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{count: model.count + 1}),
-					elm$core$Platform$Cmd$none);
-			default:
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{count: model.count - 1}),
-					elm$core$Platform$Cmd$none);
+								author$project$Main$makeModel,
+								model,
+								A3(
+									author$project$Main$setCard,
+									card,
+									function (cell) {
+										return _Utils_update(
+											cell,
+											{status: author$project$Main$Visible});
+									},
+									model.board))),
+						elm$core$Platform$Cmd$none)));
+				case 'Visible':
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+				default:
+					return _Utils_Tuple2(model, elm$core$Platform$Cmd$none);
+			}
+		} else {
+			var list = msg.a;
+			return A2(author$project$Main$setModel, list, 0);
 		}
 	});
-var author$project$Main$Decrement = {$: 'Decrement'};
-var author$project$Main$Increment = {$: 'Increment'};
 var elm$json$Json$Decode$map = _Json_map1;
 var elm$json$Json$Decode$map2 = _Json_map2;
 var elm$json$Json$Decode$succeed = _Json_succeed;
@@ -5786,47 +5791,78 @@ var author$project$Main$displayFunc = function (le_cell) {
 			]),
 		_List_Nil);
 };
-var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$div = _VirtualDom_node('div');
-var elm$html$Html$p = _VirtualDom_node('p');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var author$project$Main$playerMsg = function (model) {
+	return ((model.player1Score + model.player2Score) === 8) ? A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text(
+				_Utils_eq(model.player1Score, model.player2Score) ? 'Draw!' : ((_Utils_cmp(model.player1Score, model.player2Score) > 0) ? 'Player 1 wins!' : 'Player 2 wins!')),
+				elm$html$Html$text(' - GAME OVER.')
+			])) : ((model.player === 1) ? A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text('Player 1 to play.')
+			])) : A2(
+		elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
+				elm$html$Html$text('Player 2 to play.')
+			])));
+};
+var elm$html$Html$br = _VirtualDom_node('br');
+var elm$html$Html$h1 = _VirtualDom_node('h1');
+var elm$html$Html$p = _VirtualDom_node('p');
+var elm$html$Html$strong = _VirtualDom_node('strong');
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
-				elm$html$Html$text('Memeory'),
+				A2(
+				elm$html$Html$h1,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('Memeory')
+					])),
 				A2(elm$html$Html$p, _List_Nil, _List_Nil),
 				A2(author$project$Main$displayBoard, author$project$Main$displayFunc, model.board),
+				A2(elm$html$Html$p, _List_Nil, _List_Nil),
 				A2(
-				elm$html$Html$button,
+				elm$html$Html$strong,
+				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Main$Increment)
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Player 1 has a pair')
+						author$project$Main$playerMsg(model)
 					])),
+				A2(elm$html$Html$p, _List_Nil, _List_Nil),
+				elm$html$Html$text('Player 1 score: '),
 				A2(
-				elm$html$Html$div,
+				elm$html$Html$strong,
 				_List_Nil,
 				_List_fromArray(
 					[
 						elm$html$Html$text(
-						elm$core$String$fromInt(model.count))
+						elm$core$String$fromInt(model.player1Score))
 					])),
+				A2(elm$html$Html$br, _List_Nil, _List_Nil),
+				elm$html$Html$text('Player 2 score: '),
 				A2(
-				elm$html$Html$button,
+				elm$html$Html$strong,
+				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$Events$onClick(author$project$Main$Decrement)
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Player 2 has a pair')
+						elm$html$Html$text(
+						elm$core$String$fromInt(model.player2Score))
 					]))
 			]));
 };
